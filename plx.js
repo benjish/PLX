@@ -21,9 +21,9 @@
 	}*/
 
 
-	var passiveEventSup = false;
+	let passiveEventSup = false;
 	try {
-		var options = Object.defineProperty({}, "passive", {
+		let options = Object.defineProperty({}, "passive", {
 			get: function () {
 				passiveEventSup = true;
 			}
@@ -55,7 +55,7 @@
 
 	const EasingCB_precision = 0.00001;
 	function EasingCB_resolveT(x,xFn) {
-		var left = 0, right = 1, t, approximateX;
+		let left = 0, right = 1, t, approximateX;
 		while (left < right) {
 			t = (left + right) / 2;
 			approximateX = xFn(t);
@@ -77,6 +77,21 @@
 	PLXEasing.easeIn    = PLXEasing.cubicBezier(0.42, 0, 1, 1);
 	PLXEasing.easeOut   = PLXEasing.cubicBezier(0, 0, 0.58, 1);
 	PLXEasing.easeInOut = PLXEasing.cubicBezier(0.42, 0, 0.58, 1);
+
+	PLXEasing.speCurve = (xstart,ystart,xend,yend,vmod) => {
+		const realX = x => x - xstart,
+		      realEndX = xend - xstart,
+		      mod = x => 1 / Math.pow(x,vmod),
+		      curve = x => mod(realX(x)) / Math.abs(mod(realEndX)),
+		      straight = x => (ystart - yend) / realEndX * realX(x);
+
+		return x => {
+			if (x <= xstart) return ystart;
+			if (x >= xend) return yend;
+
+			return ystart - straight(x) * curve(x);
+		};
+	};
 
 	class PLXAnchor {
 		constructor(strAnchor) {
@@ -266,7 +281,7 @@
 	PLXInterpolation._parser_extractNumbers = function (prop) {
 		const re = RegExp('-?\\d*\\.\\d+|!?-?\\d+|#[0-9a-fA-F]{3,8}','g'),
 		      out = [];
-		var v;
+		let v;
 		while ((v = re.exec(prop)) !== null) out.push(v);
 
 		return out;
@@ -284,7 +299,7 @@
 	};
 
 	PLXInterpolation._parser_normalizeValueColor = function (vstart,vend) {
-		for (var i = vend.length; vstart.length > vend.length; i++) {
+		for (let i = vend.length; vstart.length > vend.length; i++) {
 			vend.push(vstart[i]);
 		}
 
@@ -316,7 +331,7 @@
 		if (s.length != e.length)
 			throw new Error('PLXInterpolation.propParser on : '+p);
 
-		var i,ts,te,tp,li;
+		let i,ts,te,tp,li;
 		const str = [];
 		for (i = 0, li = 0; i < s.length; i++) {
 			ts = s[i][0];
@@ -396,7 +411,7 @@
 		return function (elm,frame) {
 			const x = easing(frame),
 			      c = selector ? selector(elm) : elm;
-			var p;
+			let p;
 
 			if (transtionProp) {
 				c.style.transition = transtionProp;
@@ -432,9 +447,9 @@
 
 	PLXInterpolation.interpolateColor = function (start,end,frame) {
 		const slen = start.length;
-		var v,out = '#';
+		let v,out = '#';
 
-		for (var i = 0;i < slen;i++) {
+		for (let i = 0;i < slen;i++) {
 			v = PLXInterpolation.interpolateInt(start[i],end[i],frame).toString(16);
 			if (v.length < 2) out += '0';
 			out += v;
@@ -444,7 +459,7 @@
 	};
 
 	PLXInterpolation.interpolateProp = function (prop,frame) {
-		var r = '', x;
+		let r = '', x;
 
 		for (let i = 0; i < prop.length; i++) {
 			x = prop[i];
@@ -523,7 +538,7 @@
 		}
 
 		_getValue(scrollY) {
-			var value = Math.round((scrollY - this._scrollRef) * this._speed);
+			let value = Math.round((scrollY - this._scrollRef) * this._speed);
 			if (this._minV !== false && value < this._minV) value = this._minV;
 			if (this._maxV !== false && value > this._maxV) value = this._maxV;
 
@@ -591,7 +606,7 @@
 				return;
 			}
 
-			var min,max,i,x;
+			let min,max,i,x;
 
 			if (this._interpolations) for (i = 0; i < this._interpolations.length;i++) {
 				x = this._interpolations[i];
@@ -658,7 +673,7 @@
 		}
 
 		_perform(scrollY,lastScrollY) {
-			var i;
+			let i;
 
 			if (this._realInterpolations) for (i = 0; i < this._realInterpolations.length;i++) {
 				this._realInterpolations[i]._interpolate(scrollY);
@@ -674,7 +689,7 @@
 		}
 
 		_getOffsets() {
-			var elm  = this._elm,
+			let elm  = this._elm,
 			    oTop = elm.offsetTop;
 			//    oLeft = elm.offsetLeft;
 			while (elm = elm.offsetParent) {
@@ -744,35 +759,6 @@
 		}
 	}
 
-	/*
-			const velocityBase = 8,
-			      velocityMax = 50,
-			      wheelMinTime = 15,
-			      wheelMaxTime = 90,
-			      velocityC = 0.350,
-			      brakeForce = 40;
-
-			const brakeCurve = (x,v) => Math.max(0,v - brakeForce * Math.pow(x,2));
-
-			const vRealX = x => x - wheelMinTime,
-			      vRealEnd = wheelMaxTime - wheelMinTime,
-			      vMod = x => 1 / Math.pow(x,velocityC),
-			      vCurve = x => vMod(vRealX(x)) / Math.abs(vMod(vRealEnd)),
-			      vStraight = x => vRealX(x) * ((velocityMax - velocityBase) / vRealEnd),
-			      velocityCurve = (x) => {
-			      	if (x <= wheelMinTime) return velocityMax;
-			      	if (x >= wheelMaxTime) return velocityBase;
-
-			      	return velocityMax - vStraight(x) * vCurve(x);
-				}
-
-			//
-			//console.log('1 / ((x+1) ^ '+vMaxT+' * '+v0max+')');
-			//console.log('1 / ((x+1)^(ln('+velocityMax+'/'+velocityBase+') '
-			//					+'/ ln('+wheelMaxTime+'+1)) * (1 / '+velocityMax+'))');
-			//
-	*/
-
 	class PLXScroller {
 		constructor() {
 			this._wheelEvent  = this._wheelEvent.bind(this);
@@ -782,12 +768,11 @@
 		init(frameRequester) {
 			this._direction = 0,
 			this._startTime = 0,
-			this._endTime = 0,
-			this._duration = 0,
-			this._startPos  = 0,
-			this._stepPos = 0,
-			this._currentPos = 0,
-			this._targetDist = 0,
+			this._startPos = 0,
+			this._targetPos = 0,
+			this._speed = 0,
+			this._countScrollEqual = 0,
+			this._lastFrameTime = 0;
 			this._wheelCount = 0,
 			this._frameRequest = false,
 			this._wheelRequest = false;
@@ -807,7 +792,10 @@
 		_wheelEvent(e) {
 			e.stopImmediatePropagation();
 			if (e.target != document.body
-				&& PLXScroller._hasScrollBar(e.target)) return;
+				&& PLXScroller._hasScrollBar(e.target)) {
+				console.log("ELEMENT WITH SCROLLBAR",e.target);
+				return;
+			}
 
 			e.preventDefault();
 
@@ -829,76 +817,82 @@
 				this._cssScrollBehavior = document.body.style.scrollBehavior;
 				document.body.style.scrollBehavior = 'auto';
 				this._frameRequest = true;
-				//window.requestAnimationFrame(this.scrollFrame);
 				this._frameRequester();
 			}
-			//console.log('FRAME','START');
 		}
 
 		_stop() {
-			//console.log('FRAME','STOP');
+			//console.log('FRAME','STOP',this._targetPos,window.scrollY);
 			this._frameRequest = false;
 			this._direction = 0;
 			this._startTime = 0;
 			document.body.style.scrollBehavior = this._cssScrollBehavior;
 		}
 
-		_scrollFrame(now,scrollY) {
+		_scrollFrame(now,scrollY,lastScrollY) {
 			if (!this._frameRequest) return;
 
-			/*const scrollY = PLX.SCROLL_Y || window.scrollY;
-			const scrollMaxY = PLX.SCROLL_MAXY || Infinity;
-
-			if (direction == 0
-				|| (direction < 0 && scrollY == 0)
-				|| (direction > 0 && scrollY == scrollMaxY)
-			) return stop();*/
-
 			if (this._startTime == 0) {
-				this._startTime = now;
-				//startPos = stepPos = currentPos = scrollY;
-				this._startPos = this._stepPos = this._currentPos = window.scrollY;
-					//PLX.SCROLL_Y || window.scrollY;
+				this._startTime = this._lastFrameTime = now;
+				this._startPos = scrollY;
+				this._speed = 0;
+				this._countScrollEqual = 0;
 			}
 
 			if (this._wheelRequest) {
 				this._wheelRequest = false;
-				this._targetDist = PLXScroller.stepBase * this._wheelCount - Math.abs(this._currentPos - this._startPos);
-				this._stepPos = this._currentPos;
 
-				this._duration = PLXScroller.durationCurve(this._targetDist);
-				//console.log('FRAME duration',duration);
-				this._endTime = now + this._duration;
+				this._targetPos = this._startPos + Math.round(PLXScroller.stepBase * this._wheelCount * this._direction);
 			}
 
-			var rate = 1 - Math.max(0,this._endTime - now) / this._duration;
-			rate = PLXEasing.easeOut(rate);
-			this._currentPos = this._stepPos + this._targetDist * rate * this._direction;
+			const distance = Math.abs(this._targetPos - scrollY);
+			if (distance == 0) return this._stop();
 
-			window.scrollTo(0,this._currentPos);
+			const frameGap = now - this._lastFrameTime;
+			this._lastFrameTime = now;
 
-			if (rate == 1) return this._stop();
+			this._speed = PLXScroller._speedRegulator(distance,this._speed);
 
-			//window.requestAnimationFrame(this.scrollFrame);
+			let newPos = scrollY + Math.ceil(frameGap * (this._speed / 1000)) * this._direction;
+
+			if (this._direction < 0 && newPos < this._targetPos) newPos = this._targetPos;
+			else if (this._direction > 0 && newPos > this._targetPos) newPos = this._targetPos;
+
+			this._countScrollEqual = lastScrollY == scrollY ? this._countScrollEqual+1 : 0;
+
+			if (frameGap > 0 && (this._countScrollEqual >= 5 || scrollY == this._targetPos)) return this._stop();
+
+			window.scrollTo(0,newPos);
 		}
 	}
 
-	PLXScroller.stepBase = 200, //document.documentElement.clientHeight / 5;
-	PLXScroller.maxSpeedDistance = 3000,
-	PLXScroller.minSpeed = 1000, // px/s
+	PLXScroller.stepBase = 200; //document.documentElement.clientHeight / 5;
+	PLXScroller.minSpeedDistance = 0; // px
+	PLXScroller.maxSpeedDistance = 2000; // px
+	PLXScroller.minSpeed = 0; // px/s
 	PLXScroller.maxSpeed = 4000; // px / s
+	PLXScroller.speedCoefMax = 1.5;
+	PLXScroller.speedCoefMin = 1.1;
 
-	PLXScroller.speedCurve = function (distance) {
-		return Math.min(PLXScroller.maxSpeed,
-			(distance - PLXScroller.stepBase) *
-			(PLXScroller.maxSpeed - PLXScroller.minSpeed) /
-			(PLXScroller.maxSpeedDistance - PLXScroller. stepBase) +
-			PLXScroller.minSpeed
-		);
-	}
+	PLXScroller.speedCurve = PLXEasing.cubicBezier(0,.38,1,.64);
 
-	PLXScroller.durationCurve = function (distance) {
-		return distance / PLXScroller.speedCurve(distance) * 1000 * 1.5;
+	PLXScroller._speedRegulator = function (distance,speed) {
+		const speedTarget = PLXScroller.minSpeed + (PLXScroller.maxSpeed - PLXScroller.minSpeed)
+			* PLXScroller.speedCurve(
+				(distance - PLXScroller.minSpeedDistance) / PLXScroller.maxSpeedDistance
+			);
+
+		if (speed >= speedTarget || speed == 0) return speedTarget;
+
+		speed *= PLXScroller.speedCoefMin + (PLXScroller.speedCoefMax - PLXScroller.speedCoefMin) * (1 - 1/speedTarget * speed);
+
+		/* -- DEBUG --
+		const coef = PLXScroller.speedCoefMin + (PLXScroller.speedCoefMax - PLXScroller.speedCoefMin) * (1 - 1/speedTarget * speed);
+		if (speed < speedTarget) console.log('sp',speed ,'spt', speedTarget,coef);
+		else  console.log('------ > sp',speed ,'spt', speedTarget,coef);
+		//*/
+
+		return speed > speedTarget ? speedTarget : speed;
 	}
 
 	PLXScroller._hasScrollBar = (() => {
@@ -948,10 +942,6 @@
 		}
 
 		run() {
-			//const self = this;
-
-			/*window.requestAnimationFrame(this.requestFrame);*/
-
 			this._resizeEvent = () => {
 				clearTimeout(this._doResize);
 				this._doResize = setTimeout(() => this._buildTriggers(),200);
@@ -998,14 +988,16 @@
 			}
 
 			const scrollY = window.scrollY;//PLX.SCROLL_Y || window.scrollY;
+			const lastScrollY = this._lastScrollY;
+			this._lastScrollY = scrollY;
 
 			if (this._scroller && this._scroller._frameRequest)
-				this._scroller._scrollFrame(now,scrollY);
+				this._scroller._scrollFrame(now,scrollY,lastScrollY);
 
-			if (this._isEntriesAlive && this._lastScrollY != scrollY) {
-				this._performFrame(scrollY,this._lastScrollY);
-				this._lastScrollY = scrollY;
+			if (this._isEntriesAlive && lastScrollY != scrollY) {
+				this._performFrame(scrollY,lastScrollY);
 			}
+
 
 			if ((!this._isEntriesAlive || now - this._requestFrameTime > 500)
 			    && (!this._scroller || !this._scroller._frameRequest)) {
@@ -1020,10 +1012,10 @@
 		}
 
 		_performFrame(scrollY,lastScrollY) {
-			var mins = Math.min(scrollY,lastScrollY);
-			var maxs = Math.max(scrollY,lastScrollY);
+			let mins = Math.min(scrollY,lastScrollY);
+			let maxs = Math.max(scrollY,lastScrollY);
 
-			var entry;
+			let entry;
 			for (let i = 0; i < this._realEntries.length; i++) {
 				entry = this._realEntries[i];
 				entry._performParallax(scrollY);
