@@ -1,4 +1,4 @@
-(function () {
+(() => {
 	"use strict";
 	/*
 		terser --keep-classnames -m --mangle-props regex=^_ -c -o plx.min.js -- plx.js
@@ -24,7 +24,7 @@
 	let passiveEventSup = false;
 	try {
 		let options = Object.defineProperty({}, "passive", {
-			get: function () {
+			get: () => {
 				passiveEventSup = true;
 			}
 		});
@@ -35,7 +35,7 @@
 		passiveEventSup = false;
 	}
 
-	function checkResponsive(obj,offsets) {
+	const checkResponsive = (obj,offsets) => {
 		if (obj.minWidth && obj.minWidth > offsets.viewportWidth) return false;
 		if (obj.maxWidth && obj.maxWidth < offsets.viewportWidth) return false;
 		if (obj.minHeight && obj.minHeight > offsets.viewportHeight) return false;
@@ -46,7 +46,7 @@
 
 	class PLXEasing { }
 
-	function EasingCB_vFn(v1,v2) {
+	const EasingCB_vFn = (v1,v2) => {
 		v1 *= 3; v2 *= 3;
 		const a = v1 - v2 + 1, b = v2 - v1 * 2;
 		//return t => a * Math.pow(t,3) + b * Math.pow(t,2) + v1 * t;
@@ -54,7 +54,7 @@
 	}
 
 	const EasingCB_precision = 0.00001;
-	function EasingCB_resolveT(x,xFn) {
+	const EasingCB_resolveT = (x,xFn) => {
 		let left = 0, right = 1, t, approximateX;
 		while (left < right) {
 			t = (left + right) / 2;
@@ -67,7 +67,7 @@
 		return t;
 	}
 
-	PLXEasing.cubicBezier = function (x1, y1, x2, y2) {
+	PLXEasing.cubicBezier = (x1, y1, x2, y2) => {
 		const yFn = EasingCB_vFn(y1,y2), xFn = EasingCB_vFn(x1,x2);
 		return x => x <= 0 ? 0 : x >= 1 ? 1 : yFn(EasingCB_resolveT(x,xFn));
 	}
@@ -112,7 +112,7 @@
 		}
 	}
 
-	PLXAnchor._str2value = function (x,defaultV = 0) {
+	PLXAnchor._str2value = (x,defaultV = 0) => {
 		switch (x) {
 			case 'top' : return 0;
 			case 'bottom' : return 1;
@@ -128,7 +128,7 @@
 		}
 	};
 
-	PLXAnchor._parseAnchor = function (anchor) {
+	PLXAnchor._parseAnchor = anchor => {
 		anchor = anchor.trim().toLowerCase().replace(/-/g,',').replace(/,,/g,',-');
 		if (anchor.startsWith(',')) anchor = '-' + anchor.substring(1);
 		anchor = anchor.split(',');
@@ -209,7 +209,7 @@
 		}
 	}
 
-	PLXAnimation._checkAnchor = function (scrollY,lastScrollY,anchorPos,anchorDir) {
+	PLXAnimation._checkAnchor = (scrollY,lastScrollY,anchorPos,anchorDir) => {
 		const min = Math.min(scrollY,lastScrollY),
 		      max = Math.max(scrollY,lastScrollY);
 		if (anchorPos < min || anchorPos > max) return false;
@@ -220,7 +220,7 @@
 		return true;
 	}
 
-	PLXAnimation.cssAnimation = function (cssAnimationClassName) {
+	PLXAnimation.cssAnimation = cssAnimationClassName => {
 		return (elm,isReset) => {
 			if (isReset) {
 				elm.style.animationPlayState = '';
@@ -278,7 +278,7 @@
 		}
 	}
 
-	PLXInterpolation._parser_extractNumbers = function (prop) {
+	PLXInterpolation._parser_extractNumbers = prop => {
 		const re = RegExp('-?\\d*\\.\\d+|!?-?\\d+|#[0-9a-fA-F]{3,8}','g'),
 		      out = [];
 		let v;
@@ -287,7 +287,7 @@
 		return out;
 	};
 
-	PLXInterpolation._parser_valueColor = function (vstr) {
+	PLXInterpolation._parser_valueColor = vstr => {
 		vstr = vstr.substring(1);
 		if (![3,4,6,8].includes(vstr.length))
 			throw new Error('PLXInterpolation._parser_valueColor on : '+vstr);
@@ -298,7 +298,7 @@
 		return spl.map(x => parseInt(x, 16));
 	};
 
-	PLXInterpolation._parser_normalizeValueColor = function (vstart,vend) {
+	PLXInterpolation._parser_normalizeValueColor = (vstart,vend) => {
 		for (let i = vend.length; vstart.length > vend.length; i++) {
 			vend.push(vstart[i]);
 		}
@@ -306,7 +306,7 @@
 		 return vend;
 	};
 
-	PLXInterpolation._parser_valueType = function (vstr,forcetype=-1) {
+	PLXInterpolation._parser_valueType = (vstr,forcetype=-1) => {
 		// 1 : INT ; 2 : HEX COLOR ; 0 : FLOAT
 		const type = forcetype != -1 ? forcetype :
 			vstr.startsWith('!') ? 1 : vstr.startsWith('#') ? 2 : 0;
@@ -319,7 +319,7 @@
 		return {type,value};
 	};
 
-	PLXInterpolation.propParser = function (prop) {
+	PLXInterpolation.propParser = prop => {
 		if (typeof prop == 'function') return prop;
 
 		prop = prop.map(x => typeof x == 'number' ? x.toString() : x);
@@ -374,7 +374,7 @@
 		return out;
 	};
 
-	PLXInterpolation.simpleAnimator = function (props,options) {
+	PLXInterpolation.simpleAnimator = (props,options) => {
 		if (typeof props != 'object') return null;
 
 		options = typeof options == 'object' ? options : {};
@@ -408,7 +408,7 @@
 		const transtionProp = transition > 0 ? "all "+transition+"s linear" : null;
 
 
-		return function (elm,frame) {
+		return (elm,frame) => {
 			const x = easing(frame),
 			      c = selector ? selector(elm) : elm;
 			let p;
@@ -431,7 +431,7 @@
 		}
 	};
 
-	PLXInterpolation.interpolateFloat = function (start,end,frame) {
+	PLXInterpolation.interpolateFloat = (start,end,frame) => {
 		/*
 		const v = Math.round((start + (end - start) * frame) * 1000000);
 		if (v == 0) return v;
@@ -441,11 +441,11 @@
 		return start + (end - start) * frame;
 	};
 
-	PLXInterpolation.interpolateInt = function (start,end,frame) {
+	PLXInterpolation.interpolateInt = (start,end,frame) => {
 		return Math.round(start + (end - start) * frame);
 	};
 
-	PLXInterpolation.interpolateColor = function (start,end,frame) {
+	PLXInterpolation.interpolateColor = (start,end,frame) => {
 		const slen = start.length;
 		let v,out = '#';
 
@@ -458,7 +458,7 @@
 		return out;
 	};
 
-	PLXInterpolation.interpolateProp = function (prop,frame) {
+	PLXInterpolation.interpolateProp = (prop,frame) => {
 		let r = '', x;
 
 		for (let i = 0; i < prop.length; i++) {
@@ -830,7 +830,7 @@
 		}
 
 		_scrollFrame(now,scrollY,lastScrollY) {
-			if (!this._frameRequest) return;
+			if (!this._frameRequest) return scrollY;
 
 			if (this._startTime == 0) {
 				this._startTime = this._lastFrameTime = now;
@@ -846,7 +846,10 @@
 			}
 
 			const distance = Math.abs(this._targetPos - scrollY);
-			if (distance == 0) return this._stop();
+			if (distance == 0) {
+				this._stop();
+				return scrollY;
+			}
 
 			const frameGap = now - this._lastFrameTime;
 			this._lastFrameTime = now;
@@ -860,9 +863,14 @@
 
 			this._countScrollEqual = lastScrollY == scrollY ? this._countScrollEqual+1 : 0;
 
-			if (frameGap > 0 && (this._countScrollEqual >= 5 || scrollY == this._targetPos)) return this._stop();
+			if (frameGap > 0 && (this._countScrollEqual >= 5 || scrollY == this._targetPos)) {
+				this._stop();
+				return scrollY;
+			}
 
 			window.scrollTo(0,newPos);
+
+			return newPos;
 		}
 	}
 
@@ -876,7 +884,7 @@
 
 	PLXScroller.speedCurve = PLXEasing.cubicBezier(0,.38,1,.64);
 
-	PLXScroller._speedRegulator = function (distance,speed) {
+	PLXScroller._speedRegulator = (distance,speed) => {
 		const speedTarget = PLXScroller.minSpeed + (PLXScroller.maxSpeed - PLXScroller.minSpeed)
 			* PLXScroller.speedCurve(
 				(distance - PLXScroller.minSpeedDistance) / PLXScroller.maxSpeedDistance
@@ -987,12 +995,12 @@
 				this._requestFrameRun = true;
 			}
 
-			const scrollY = window.scrollY;//PLX.SCROLL_Y || window.scrollY;
+			let scrollY = window.scrollY;//PLX.SCROLL_Y || window.scrollY;
 			const lastScrollY = this._lastScrollY;
 			this._lastScrollY = scrollY;
 
 			if (this._scroller && this._scroller._frameRequest)
-				this._scroller._scrollFrame(now,scrollY,lastScrollY);
+				scrollY = this._scroller._scrollFrame(now,scrollY,lastScrollY);
 
 			if (this._isEntriesAlive && lastScrollY != scrollY) {
 				this._performFrame(scrollY,lastScrollY);
