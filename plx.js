@@ -790,13 +790,14 @@
 		}
 
 		_wheelEvent(e) {
-			e.stopImmediatePropagation();
-			if (e.target != document.body
+			if (document.body.classList.contains('plx-no-scroller')
+				|| e.target != document.body
 				&& PLXScroller._hasScrollBar(e.target)) {
-				console.log("ELEMENT WITH SCROLLBAR",e.target);
+				//console.log("ELEMENT WITH SCROLLBAR",e.target);
 				return;
 			}
 
+			e.stopImmediatePropagation();
 			e.preventDefault();
 
 			const ndir = e.deltaY > 0 ? 1 : -1;
